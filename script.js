@@ -2,6 +2,7 @@ const container = document.getElementById('container');
 const registerBtn = document.getElementById('register');
 const loginBtn = document.getElementById('login');
 
+// Toggle between login and register forms
 registerBtn.addEventListener('click', () => {
     container.classList.add("active");
 });
@@ -21,7 +22,8 @@ document.querySelector('.sign-up form').addEventListener('submit', async (e) => 
         const res = await fetch('http://localhost:5000/auth/register', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, password })
+            body: JSON.stringify({ email, password }),
+            credentials: 'include' // Allows cookies (JWT token)
         });
 
         const data = await res.json();
@@ -68,7 +70,7 @@ async function logout() {
     try {
         const res = await fetch('http://localhost:5000/auth/logout', {
             method: 'POST',
-            credentials: 'include'
+            credentials: 'include'  // Include cookies (JWT token)
         });
 
         const data = await res.json();
