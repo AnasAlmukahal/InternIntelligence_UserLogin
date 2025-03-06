@@ -8,24 +8,44 @@ const userRoutes = require('./routes/user');
 const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
 
-// Enhanced CORS configuration
+// Ensure CORS middleware is applied correctly
+// Try more permissive CORS configuration for debugging
 app.use(cors({
-    origin: 'http://localhost:5500', 
-    credentials: true
+    origin: true,
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-// Security middleware
-app.use(helmet()); 
-app.use(express.json({ limit: '10kb' })); 
+// Debugging CORS - add middleware to inspect request
+app.use((req, res, next) => {
+    console.log(`Request from origin: ${req.headers.origin}`);
+    console.log(`Request method: ${req.method}`);
+    console.log(`Request path: ${req.path}`);
+    next();
+});
 
+// Pre-flight OPTIONS handling (explicit handling to debug CORS)
+app.options('*', cors({
+    origin: true,
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
 
+// Security middleware - make sure to apply AFTER CORS
+app.use(helmet({
+    crossOriginResourcePolicy: false // Disable during debugging
+}));
+app.use(express.json({ limit: '10kb' }));
+
+// Apply rate limiter AFTER CORS
 const loginLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000, 
-    max: 5, 
+    windowMs: 15 * 60 * 1000,
+    max: 5,
     message: { message: 'Too many login attempts, please try again later' }
 });
 
-// Apply rate limiter only to login endpoint
 app.use('/auth/login', loginLimiter);
 
 mongoose.connect(process.env.MONGO_URL)
